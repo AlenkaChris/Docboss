@@ -4,32 +4,33 @@ const jwt = require("jsonwebtoken");
 
 exports.register = async (req, res) => {
   try {
-    const { fullName, email, password } = req.body;
+    const { name, email, password } = req.body;
 
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
       return res.status(400).json({
-        message: "Email already exists"
+        success: false,
+        message: "User already exists",
       });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
-      fullName,
+      name,
       email,
-      password: hashedPassword
+      password: hashedPassword,
     });
 
     res.status(201).json({
       success: true,
-      user
+      user,
     });
-
   } catch (error) {
     res.status(500).json({
-      message: error.message
+      success: false,
+      error: error.message,
     });
   }
 };
@@ -41,42 +42,39 @@ exports.login = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(400).json({
-        message: "Invalid credentials"
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
       });
     }
 
-    const validPassword = await bcrypt.compare(
+    const isMatch = await bcrypt.compare(
       password,
       user.password
     );
 
-    if (!validPassword) {
-      return res.status(400).json({
-        message: "Invalid credentials"
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials",
       });
     }
 
     const token = jwt.sign(
-      {
-        id: user._id,
-        role: user.role
-      },
-      "DOCBOSS_SECRET",
-      {
-        expiresIn: "7d"
-      }
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "30d" }
     );
 
     res.json({
       success: true,
       token,
-      user
+      user,
     });
-
   } catch (error) {
     res.status(500).json({
-      message: error.message
+      success: false,
+      error: error.message,
     });
   }
 };

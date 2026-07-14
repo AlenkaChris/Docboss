@@ -1,14 +1,5 @@
-import "./App.css";
-import Navbar from "./components/Navbar";
-import Hero from "./components/Hero";
-
 function App() {
-  return (
-    <>
-      <Navbar />
-      <Hero />
-    </>
-  );
+  return <h1>Hello Docboss!</h1>;
 }
 
 export default App;
